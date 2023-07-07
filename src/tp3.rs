@@ -1,3 +1,5 @@
+use std::collections::{HashMap, VecDeque};
+
 /*1- Escribir un programa que defina una estructura Persona que tenga campos para el
 nombre, la edad y la dirección(que puede ser nulo al momento de la creación de una
 persona). Para dicha estructura implemente los siguientes métodos:
@@ -63,6 +65,7 @@ cuenta los años bisiestos también.
 ➢ restar_dias(dias): resta la cantidad de días a la fecha, modificándose
 ➢ es_mayor(una_fecha): que retorna true si la fecha que recibe el mensaje es mayor a
 la fecha pasada por parámetro.. */
+#[derive(Clone,Debug,PartialEq)]
 pub struct Fecha{
     dia:u8,
     mes:u8,
@@ -167,6 +170,9 @@ impl Fecha {
         } else {
             false
         }
+    }
+    pub fn igual_fecha(&self,otro:&Self)->bool{
+        self.anio==otro.anio&&self.mes==otro.mes&&self.dia==otro.dia
     }
 }
 /*4- Escribir un programa que defina la estructura Triángulo que tenga campos para las
@@ -493,7 +499,7 @@ ella:
 ➔ modificar título de la playlist.
 ➔ eliminar todas las canciones. */
 #[derive(Clone,Debug)]
-pub enum Genero{
+pub enum GeneroM{
     Rock,
     Pop,
     Rap,
@@ -504,55 +510,55 @@ pub enum Genero{
 pub struct Cancion{
     titulo:String,
     artista:String,
-    genero:Genero
+    genero:GeneroM
 }
 pub struct Playlist{
     nombre:String,
     lista_de_canciones:Vec<Cancion> 
 }
-impl Genero{
+impl GeneroM{
     pub fn es_rock(&self)->bool{
         match self{
-            Genero::Rock=>true,
+            GeneroM::Rock=>true,
             _=>false
         }
     }
     pub fn es_pop(&self)->bool{
         match self{
-            Genero::Pop=>true,
+            GeneroM::Pop=>true,
             _=>false
         }
     }
     pub fn es_rap(&self)->bool{
         match self{
-            Genero::Rap=>true,
+            GeneroM::Rap=>true,
             _=>false
         }
     }
     pub fn es_jazz(&self)->bool{
         match self{
-            Genero::Jazz=>true,
+            GeneroM::Jazz=>true,
             _=>false
         }
     }
     pub fn es_otro(&self)->bool{
         match self{
-            Genero::Otros=>true,
+            GeneroM::Otros=>true,
             _=>false
         }
     }
     pub fn igual_genero(&self,otro:&Self)->bool{
         match self{
-            Genero::Rock=>otro.es_rock(),
-            Genero::Pop=>otro.es_pop(),
-            Genero::Rap=>otro.es_rap(),
-            Genero::Jazz=>otro.es_jazz(),
-            Genero::Otros=>otro.es_otro()
+            GeneroM::Rock=>otro.es_rock(),
+            GeneroM::Pop=>otro.es_pop(),
+            GeneroM::Rap=>otro.es_rap(),
+            GeneroM::Jazz=>otro.es_jazz(),
+            GeneroM::Otros=>otro.es_otro()
         }
     }
 }
 impl Cancion{
-    pub fn new(titulo:String,artista:String,genero:Genero)->Self{
+    pub fn new(titulo:String,artista:String,genero:GeneroM)->Self{
         Self {titulo, artista, genero}
     }
     pub fn igual_cancion(&self,otro:&Self)->bool{
@@ -583,9 +589,7 @@ impl Playlist{
             }
         }
     }
-    pub fn eliminar_ultima_cancion(&mut self){
-        self.lista_de_canciones.pop();
-    }
+
     pub fn mover_cancion_pasando_una_cancion(&mut self,cancion:Cancion,posicion:usize){
         if posicion<=self.lista_de_canciones.len(){
             self.eliminar_cancion_en_especifico(&cancion);
@@ -623,7 +627,7 @@ impl Playlist{
             self.lista_de_canciones.remove(posicion_base);
         }
     }
-    pub fn lista_de_canciones_de_determinado_genero(&self,un_genero:Genero)->Option<Vec<&Cancion>>{
+    pub fn lista_de_canciones_de_determinado_genero(&self,un_genero:GeneroM)->Option<Vec<&Cancion>>{
         if self.lista_de_canciones.is_empty(){
             return None
         }
@@ -648,6 +652,7 @@ impl Playlist{
         Some(lista_de_canciones_de_un_artista)
     }
 }
+
 /* 9.-Dada una cadena de veterinarias se desea implementar un sistema de atención de
 pacientes para cada veterinaria, de la veterinaria se conoce el nombre, la dirección y un id.
 Para la atención de mascotas se requiere administrar una cola de atención. De la mascota
@@ -670,20 +675,564 @@ teléfono.
 ➔ modificar la fecha de la próxima visita de una determinada atención.
 ➔ eliminar una determinada atención.
 Nota: para la fecha utilice lo implementado en el punto 3.*/
-pub fn ejecutable(){
-    let mut p=Playlist::new("chilling".to_string());
-    println!("{}",p.nombre);
-    p.cambiar_nombre_playlist("chilleando".to_string());
-    println!("{}",p.nombre);
-    println!("{:#?}",p.lista_de_canciones);
-    let cancion1=Cancion::new("Made in heaven".to_string(),"Led Zeppelin".to_string(),Genero::Rock);
-    p.agregar_cancion(cancion1);
-    let cancion2=Cancion::new("Night Dancer".to_string(),"VEGETA777".to_string(),Genero::Pop);
-    p.agregar_cancion(cancion2);
-    let cancion3=Cancion::new("Suavamente".to_string(),"VEGETA777".to_string(),Genero::Rock);
-    p.agregar_cancion(cancion3);
-    println!("{:#?}",p.lista_de_canciones);
-    let cancion_aux=Cancion::new("Made in heaven".to_string(),"Led Zeppelin".to_string(),Genero::Rock);
-    p.mover_cancion_pasando_referencia_de_cancion(&cancion_aux, 3);
-    println!("{:#?}",p.lista_de_canciones);
+#[derive(Clone,Debug,PartialEq)]
+pub enum TipoAnimal{
+    Perro,
+    Gato,
+    Caballo,
+    Otro
 }
+#[derive(Clone,Debug,PartialEq)]
+pub struct Dueño{
+    nombre:String,
+    direccion:String,
+    telefono:u128
+}
+#[derive(Clone,Debug,PartialEq)]
+pub struct Mascota{
+    nombre:String,
+    edad:u32,
+    tipo_de_animal:TipoAnimal,
+    dueño:Dueño
+}
+#[derive(Clone,Debug,PartialEq)]
+pub struct RegistroAtencion{
+    mascota:Mascota,
+    diagnostico:String,
+    tratamiento:String,
+    fecha_proxima_visita:Option<Fecha>
+}
+pub struct Veterinaria{
+    nombre:String,
+    direccion:String,
+    id:u32,
+    cola_de_atencion:VecDeque<Mascota>,
+    registro:Vec<RegistroAtencion>
+}
+impl TipoAnimal {
+    pub fn es_perro(&self)->bool{
+        match self{
+            TipoAnimal::Perro=>true,
+            _=>false
+        }
+    }
+    pub fn es_gato(&self)->bool{
+        match self{
+            TipoAnimal::Gato=>true,
+            _=>false
+        }
+    }
+    pub fn es_caballo(&self)->bool{
+        match self{
+            TipoAnimal::Caballo=>true,
+            _=>false
+        }
+    }
+    pub fn es_otro(&self)->bool{
+        match self{
+            TipoAnimal::Otro=>true,
+            _=>false
+        }
+    }
+    pub fn igual_tipo(&self,otro:&Self)->bool{
+        match self{
+            TipoAnimal::Perro=>otro.es_perro(),
+            TipoAnimal::Gato=>otro.es_gato(),
+            TipoAnimal::Caballo=>otro.es_caballo(),
+            TipoAnimal::Otro=>otro.es_otro()
+        }
+    }
+}
+impl Dueño{
+    pub fn new(nombre:String,direccion:String,telefono:u128)->Self{
+        Self { nombre, direccion, telefono}
+    }
+    pub fn igual_dueño(&self,otro:&Self)->bool{
+        self.nombre==otro.nombre && self.direccion==otro.direccion && self.telefono==otro.telefono
+    }
+}
+impl Mascota{
+    pub fn new(nombre:String,edad:u32,tipo_de_animal:TipoAnimal,dueño:Dueño)->Self{
+        Self { nombre, edad, tipo_de_animal, dueño}
+    }
+    pub fn igual_mascota(&self,otro:&Self)->bool{
+        self.nombre==otro.nombre && self.edad==otro.edad && self.tipo_de_animal.igual_tipo(&otro.tipo_de_animal)&& self.dueño.igual_dueño(&otro.dueño)
+    }
+}
+impl RegistroAtencion{
+    pub fn new(mascota:Mascota,diagnostico:String,tratamiento:String,fecha_proxima_visita:Option<Fecha>)->Self{
+        Self { mascota, diagnostico, tratamiento, fecha_proxima_visita}
+    }
+    pub fn igual_atencion(&self,otro:&Self)->bool{
+        if self.diagnostico==otro.diagnostico && self.mascota.igual_mascota(&otro.mascota) && self.tratamiento==otro.tratamiento{
+            if self.fecha_proxima_visita.is_some() && otro.fecha_proxima_visita.is_some(){
+                if self.fecha_proxima_visita.clone().unwrap().igual_fecha(&otro.fecha_proxima_visita.clone().unwrap()){
+                    return true;       
+                }
+            }
+            if self.fecha_proxima_visita.is_none()&&otro.fecha_proxima_visita.is_none(){
+                return true;
+            }
+        }
+    false
+    }
+}
+impl Veterinaria{
+    pub fn new(nombre:String,id:u32,direccion:String)->Self{
+        Self { nombre, direccion, id, cola_de_atencion:VecDeque::new(), registro:Vec::new()}
+    }
+    pub fn encolar_mascota(&mut self,una_mascota:Mascota){
+        self.cola_de_atencion.push_back(una_mascota);
+    }
+    pub fn encolar_mascota_maxima_prioridad(&mut self,una_mascota:Mascota){
+        self.cola_de_atencion.push_front(una_mascota);
+    }
+    pub fn atender_proxima_mascota(&mut self)->Option<Mascota>{
+        self.cola_de_atencion.pop_front()
+    }
+    pub fn retirar_una_mascota_de_la_cola(&mut self,mascota_a_borrar:&Mascota){
+        if !self.cola_de_atencion.is_empty(){
+            let mut i=0;
+            let mut posicion_encontrada=self.cola_de_atencion.len()+1;
+            for mascota in &self.cola_de_atencion{
+                if mascota.igual_mascota(mascota_a_borrar){
+                    posicion_encontrada=i;
+                    break;
+                }
+                i+=1;
+            }
+            if posicion_encontrada!=self.cola_de_atencion.len()+1{
+                self.cola_de_atencion.remove(posicion_encontrada);
+            }
+        }
+    }
+    pub fn registrar_atencion(&mut self,una_mascota:Mascota,un_diagnostico:String,un_tratamiento:String,fecha_de_proxima_visita:Option<Fecha>){
+        let registro=RegistroAtencion::new(una_mascota, un_diagnostico, un_tratamiento, fecha_de_proxima_visita);
+        self.registro.push(registro);
+    }
+    pub fn buscar_atencion_por_distintos_parametro(&mut self,nombre_mascota:String,nombre_dueño:String,telefono:u128)->Option<RegistroAtencion>{
+        for atencion in &self.registro{
+            if atencion.mascota.nombre==nombre_mascota  && atencion.mascota.dueño.nombre==nombre_dueño && atencion.mascota.dueño.telefono==telefono{
+                return Some(atencion.clone())
+            }
+        }
+        None
+    }
+    pub fn cambiar_diagnostico(&mut self,una_atencion:&RegistroAtencion,nuevo_diagnostico:String){
+        let mut posicion: usize=0;
+        let mut existe=false;
+        for i in 0..self.registro.len(){
+            let atencion=self.registro.get(i).unwrap();
+            if una_atencion.igual_atencion(atencion){
+                posicion=i;
+                existe=true;
+                break;
+            }
+        }
+        if existe{
+            let mut registro_atencion= self.registro.get_mut(posicion).unwrap();
+            registro_atencion.diagnostico=nuevo_diagnostico;
+        }
+    }
+    pub fn cambiar_fecha(&mut self,una_atencion:&RegistroAtencion,nueva_fecha:Fecha){
+        let mut posicion=self.registro.len()+1;
+        for i in 0..self.registro.len(){
+            let atencion=self.registro.get(i).unwrap();
+            if una_atencion.igual_atencion(atencion){
+                posicion=i;
+                break;
+            }
+        }
+        if posicion!=self.registro.len()+1{
+            self.registro.get_mut(posicion).unwrap().fecha_proxima_visita=Some(nueva_fecha);
+        }
+    }
+    pub fn eliminar_atencion(&mut self,una_atencion:&RegistroAtencion){
+        let mut posicion=self.registro.len()+1;
+        for i in 0..self.registro.len(){
+            let atencion=self.registro.get(i).unwrap();
+            if una_atencion.igual_atencion(atencion){
+                posicion=i;
+                break;
+            }
+        }
+        if posicion!=self.registro.len()+1{
+            self.registro.remove(posicion);
+        }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_veterinaria() {
+        // Crear una veterinaria
+        let mut veterinaria = Veterinaria::new("Veterinaria XYZ".to_string(), 1, "Dirección de la veterinaria".to_string());
+
+        // Crear mascotas y dueños
+        let dueno1 = Dueño::new("Juan".to_string(), "Dirección 1".to_string(), 123456789);
+        let mascota1 = Mascota::new("Mascota 1".to_string(), 3, TipoAnimal::Perro, dueno1.clone());
+
+        let dueno2 = Dueño::new("Pedro".to_string(), "Dirección 2".to_string(), 987654321);
+        let mascota2 = Mascota::new("Mascota 2".to_string(), 5, TipoAnimal::Gato, dueno2.clone());
+
+        // Agregar mascotas a la cola de atención
+        veterinaria.encolar_mascota(mascota1.clone());
+        veterinaria.encolar_mascota(mascota2.clone());
+
+        // Atender la próxima mascota de la cola
+        let mascota_atendida = veterinaria.atender_proxima_mascota().unwrap();
+        assert_eq!(mascota_atendida.nombre, "Mascota 1");
+
+        // Eliminar una mascota específica de la cola de atención
+        veterinaria.retirar_una_mascota_de_la_cola(&mascota2);
+
+        // Registrar una atención
+        let atencion = RegistroAtencion::new(mascota1.clone(), "Diagnóstico 1".to_string(), "Tratamiento 1".to_string(), None);
+        veterinaria.registrar_atencion(mascota1.clone(), "Diagnóstico 1".to_string(), "Tratamiento 1".to_string(), None);
+
+        // Buscar una atención por distintos parámetros
+        let atencion_buscada = veterinaria.buscar_atencion_por_distintos_parametro("Mascota 1".to_string(), "Juan".to_string(), 123456789).unwrap();
+        assert_eq!(atencion_buscada, atencion);
+
+        // Modificar la fecha de la próxima visita de una determinada atención
+        let nueva_fecha = Fecha::new(10, 8, 2023);
+        veterinaria.cambiar_fecha(&atencion, nueva_fecha.clone());
+        assert_eq!(veterinaria.registro[0].fecha_proxima_visita.clone().unwrap(), nueva_fecha);
+
+        // Eliminar una determinada atención
+        veterinaria.eliminar_atencion(&atencion);
+        assert_eq!(veterinaria.registro.len(), 1);
+    }
+}
+
+/*10-Para una biblioteca se desea implementar un sistema de préstamos de libros. De la
+biblioteca se conoce el nombre y la dirección, las copias de los libros a disposición para
+prestar y los préstamos efectuados. Los libros a disposición es un registro donde se indica
+la cantidad de ejemplares que tiene a disposición para prestar de determinado libro. De
+cada libro se conoce el título, autor, número de páginas, género(novela, infantil, técnico,
+otros). Para registrar un préstamo se requiere el libro, el cliente, la fecha de vencimiento del
+préstamo, la fecha de devolución y el estado que puede ser devuelto o en préstamo. Del
+cliente se conoce el nombre, teléfono y dirección de correo electrónico.
+Implemente los métodos necesarios para realizar las siguientes acciones:
+➔ obtener cantidad de copias: dado un determinado libro retorna el retorna la
+cantidad de copias a disposición que hay para prestar de dicho libro.
+➔ decrementar cantidad de copias a disposición; dado un libro decrementa en 1
+la cantidad de copias de libros a disposición para prestar.
+➔ incrementar cantidad de copias a disposición: dado un libro incremente en 1
+la cantidad de copias del libro a disposición para ser prestado.
+➔ contar préstamos de un cliente: devuelve la cantidad de préstamos en estado
+“en préstamo” de un determinado cliente.
+➔ ver la cantidad disponible de un determinado libro: retorna la cantidad de
+libros disponibles del registro de “copias a disposición” de un determinado
+libro.
+➔ realizar un préstamo de un libro para un cliente: crea un préstamo de un libro
+para un determinado cliente cumpliendo con lo siguiente
+◆ el cliente no tenga más de 5 préstamos en el estado “en préstamo”
+◆ haya al menos una copia disponible en el registro de copias a
+disposición.
+De ser así descuenta 1 en el registro de “copias a disposición” y
+retorna true, si no cumple con alguna de las condiciones retorna false.
+➔ ver préstamos a vencer el los próximos días: retorna una lista de préstamos a
+vencer el los próximos días, el valor de días es pasado por parámetro.
+➔ ver los préstamos vencidos: retorna una lista de préstamos en el estado “en
+préstamos” donde la fecha de vencimiento es menor a la fecha actual.
+➔ buscar préstamo: dado un libro y un cliente busca un préstamo y lo retorna si
+existe.
+➔ devolver libro: dado un libro y un cliente se busca el préstamo y se cambia al
+estado “devuelto”, se registra la fecha de devolución y se incrementa la
+cantidad de libros en 1 del libro devuelto en el registro de copias a
+disposición.
+Nota: para la fecha utilice lo implementado en el punto 3 */
+enum Genero{
+    Novela,
+    Infantil,
+    Tecnico,
+    Otro
+}
+struct Libro{
+    titulo:String,
+    autor:String,
+    numero_de_paginas:u64,
+    id:u8
+}
+struct InfoLibro{
+    libro:Libro,
+    cantcopias:u64,
+}
+#[derive(Clone,Debug,PartialEq)]
+struct Cliente{
+    nombre:String,
+    direccion:String,
+    correo:String,
+    dni:u8
+}
+#[derive(Clone,Debug,PartialEq)]
+pub struct Prestamo{
+    id_libro:u8,
+    cliente:Cliente,
+    fecha_de_vencimiento:Fecha,
+    fecha_de_devolucion:Option<Fecha>,
+    devuelto:bool
+}
+pub struct Biblioteca{
+    nombre:String,
+    direccion:String,
+    informacion_de_todos_los_libros:HashMap<u8,InfoLibro>,
+    prestamos:Vec<Prestamo>
+}
+impl Genero{
+    fn es_novela(&self)->bool{
+        match self{
+        Genero::Novela=>true,
+        _=>false
+        }
+    }
+    fn es_infantil(&self)->bool{
+        match self{
+        Genero::Infantil=>true,
+        _=>false
+        }
+    }
+    fn es_tecnico(&self)->bool{
+        match self{
+        Genero::Tecnico=>true,
+        _=>false
+        }
+    }
+    fn es_otro(&self)->bool{
+        match self{
+            Genero::Otro=>true,
+            _=>false
+        }
+    }
+    fn tienen_igual_genero(&self,otro:&Genero)->bool{
+        match self{
+            Genero::Novela=>otro.es_novela(),
+            Genero::Infantil=>otro.es_infantil(),
+            Genero::Tecnico=>otro.es_tecnico(),
+            _=>otro.es_otro()
+        }
+    }
+}
+impl Libro{
+    fn new(titulo:String,autor:String,numero_de_paginas:u64,id:u8)->Libro{
+        Libro { titulo, autor, numero_de_paginas,id}
+    }
+}
+impl InfoLibro{
+    fn new(titulo:String,autor:String,numero_de_paginas:u64,id:u8)->Self{
+
+        let libro=Libro::new(titulo, autor, numero_de_paginas, id);
+        InfoLibro { libro, cantcopias:1 }
+    }
+}
+impl Cliente{
+    fn new(nombre:String,direccion:String,correo:String,dni:u8)->Cliente{
+        Cliente { nombre, direccion, correo,dni }
+    }
+}
+impl Prestamo{
+    fn new(id_libro:u8,cliente:Cliente,fecha_de_vencimiento:Fecha)->Prestamo{
+        Prestamo {id_libro, cliente, fecha_de_vencimiento, fecha_de_devolucion:None, devuelto:false}
+    }
+}
+impl Biblioteca{
+    pub fn new (nombre:String,direccion:String)->Self{
+        Self {nombre, direccion, informacion_de_todos_los_libros:HashMap::new(), prestamos:Vec::new()}
+    }
+    fn obtener_id_libro(&self,titulo:String,autor:String,numero_de_paginas:u64)->Option<u8>{
+        for info_libro in &self.informacion_de_todos_los_libros{
+            if info_libro.1.libro.titulo==titulo && info_libro.1.libro.autor==autor&&info_libro.1.libro.numero_de_paginas==numero_de_paginas{
+                return Some(info_libro.0.clone())
+            }
+        }
+        None
+    }
+    pub fn ver_la_cantidad_disponible_de_un_determinado_libro(&self,titulo:String,autor:String,numero_de_paginas:u64)->Option<u64>{
+        let id_buscado=self.obtener_id_libro(titulo, autor, numero_de_paginas);
+        if let Some(id_buscado)=id_buscado{
+            return Some(self.informacion_de_todos_los_libros.get(&id_buscado).unwrap().cantcopias)
+        }else{
+            None
+        }
+    }
+    pub fn decrementar_cantidad_de_copias_a_disposición(&mut self,titulo:String,autor:String,numero_de_paginas:u64){
+        let id_buscado=self.obtener_id_libro(titulo, autor, numero_de_paginas);
+        if let Some(id_buscado)=id_buscado{
+            let info_libro=self.informacion_de_todos_los_libros.get_mut(&id_buscado).unwrap();
+            if info_libro.cantcopias>0{
+                info_libro.cantcopias-=1;
+            }
+        }
+    }
+    pub fn incrementar_cantidad_de_copias_a_disposición(&mut self,titulo:String,autor:String,numero_de_paginas:u64){
+        let id_buscado=self.obtener_id_libro(titulo, autor, numero_de_paginas);
+        if let Some(id_buscado)=id_buscado{
+            self.informacion_de_todos_los_libros.get_mut(&id_buscado).unwrap().cantcopias+=1;
+        }
+    }
+    fn existe_registro_de_un_cliente(&self,dni:u8)->bool{
+        for prestamo in &self.prestamos{
+            if prestamo.cliente.dni==dni{
+                return true
+            }
+        }
+        false
+    }
+    pub fn contar_prestamos_de_un_cliente(&self,dni:u8)->Option<u8>{
+        if self.existe_registro_de_un_cliente(dni){
+            let mut cant_prestados=0;
+            let mut existe=false;
+            for prestamo in &self.prestamos{
+                if prestamo.cliente.dni==dni && !prestamo.devuelto{
+                    existe=true;
+                    cant_prestados+=1;
+                }
+            }
+            if existe{
+                return Some(cant_prestados)
+            }
+        }
+        None
+    }
+    pub fn realizar_un_préstamo_de_un_libro_para_un_cliente(&mut self,nombre:String,direccion:String,correo:String,dni:u8,titulo:String,autor:String,numero_de_paginas:u64,fecha_de_vencimiento:Fecha)->bool{
+        let id_buscado=self.obtener_id_libro(titulo.clone(), autor.clone(), numero_de_paginas.clone());
+        if let Some(id_buscado) =id_buscado {
+            if self.existe_registro_de_un_cliente(dni){
+                if self.contar_prestamos_de_un_cliente(dni).unwrap()<=5{
+                    if self.ver_la_cantidad_disponible_de_un_determinado_libro(titulo.clone(), autor.clone(), numero_de_paginas.clone()).unwrap()>0{
+                        let cliente=Cliente::new(nombre, direccion, correo, dni);
+                        let prestamo=Prestamo::new(id_buscado,cliente,fecha_de_vencimiento);
+                        self.prestamos.push(prestamo);
+                        self.decrementar_cantidad_de_copias_a_disposición(titulo, autor, numero_de_paginas);
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+    pub fn ver_prestamos_a_vencer_el_los_próximos_días(&self,anio:u128,mes:u8,dia:u8,cantidad_dias:u32)->Option<u8>{
+        if !self.informacion_de_todos_los_libros.is_empty(){
+            let fecha_de_hoy=Fecha::new(dia, mes, anio);
+            if fecha_de_hoy.es_fecha_valida(){
+                let mut cantidad_de_prestamos_a_vencer=0;
+                let mut fecha_limite=fecha_de_hoy.clone();
+                fecha_limite.sumar_dias(cantidad_dias);
+                for prestamo in &self.prestamos{
+                    if !prestamo.devuelto && fecha_limite.es_mayor(&prestamo.fecha_de_vencimiento)&& prestamo.fecha_de_vencimiento.es_mayor(&fecha_de_hoy){
+                        cantidad_de_prestamos_a_vencer+=1;
+                    }
+                }
+                return Some(cantidad_de_prestamos_a_vencer);
+            }
+        }
+        None
+    }
+    pub fn ver_los_prestamos_vencidos(&self,anio:u128,mes:u8,dia:u8)->Option<Vec<Prestamo>>{
+        if !self.prestamos.is_empty(){
+            let fecha_actual=Fecha::new(dia, mes, anio);
+            if fecha_actual.es_fecha_valida(){
+                let mut vec_de_prestamos=Vec::new();
+                for prestamo in &self.prestamos{
+                    if !prestamo.devuelto && prestamo.fecha_de_vencimiento.es_mayor(&fecha_actual){
+                        vec_de_prestamos.push(prestamo.clone());
+                    }
+                }
+                return Some(vec_de_prestamos);
+            }
+        }
+        None
+    }
+    pub fn buscar_prestamo(&self,dni:u8,titulo:String,autor:String,numero_de_paginas:u64)->bool{
+        let id_buscado=self.obtener_id_libro(titulo, autor, numero_de_paginas);
+        if let Some(id_buscado)=id_buscado{
+            for prestamo in &self.prestamos{
+                if prestamo.cliente.dni==dni && prestamo.id_libro==id_buscado{
+                    return true;
+                }
+            }
+        }
+        false
+    }
+    pub fn devolver_libro(&mut self,dni:u8,titulo:String,autor:String,numero_de_paginas:u64){
+        let id_buscado=self.obtener_id_libro(titulo.clone(), autor.clone(), numero_de_paginas.clone());
+        if let Some(id_buscado)=id_buscado{
+            let mut existe=false;
+            let mut prestamo: &mut Prestamo;
+            let mut posicion=0;
+            for i in 0..self.prestamos.len(){
+                prestamo=self.prestamos.get_mut(i).unwrap();
+                if prestamo.cliente.dni==dni && prestamo.id_libro==id_buscado && !prestamo.devuelto{
+                    existe=true;
+                    posicion=i;
+                    break;
+                }
+            }
+            if existe{
+                prestamo=self.prestamos.get_mut(posicion).unwrap();
+                prestamo.devuelto=true;
+                self.incrementar_cantidad_de_copias_a_disposición(titulo, autor, numero_de_paginas);
+            }
+        }
+    }
+}
+#[cfg(test)]
+mod tests10 {
+    use super::*;
+
+    #[test]
+    fn test_biblioteca() {
+        // Crear una biblioteca
+        let mut biblioteca = Biblioteca::new("Biblioteca ABC".to_string(), "Dirección de la biblioteca".to_string());
+
+        // Crear libros
+        let libro1 = Libro::new("Libro 1".to_string(), "Autor 1".to_string(), 200, 1);
+        let libro2 = Libro::new("Libro 2".to_string(), "Autor 2".to_string(), 150, 2);
+
+        // Agregar información de los libros a la biblioteca
+        let info_libro1 = InfoLibro::new(libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas, libro1.id);
+        let info_libro2 = InfoLibro::new(libro2.titulo.clone(), libro2.autor.clone(), libro2.numero_de_paginas, libro2.id);
+        biblioteca.informacion_de_todos_los_libros.insert(libro1.id, info_libro1);
+        biblioteca.informacion_de_todos_los_libros.insert(libro2.id, info_libro2);
+
+        // Verificar la cantidad disponible de un determinado libro
+        assert_eq!(biblioteca.ver_la_cantidad_disponible_de_un_determinado_libro(libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas), Some(1));
+
+        // Decrementar la cantidad de copias a disposición de un libro
+        biblioteca.decrementar_cantidad_de_copias_a_disposición(libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas);
+        assert_eq!(biblioteca.ver_la_cantidad_disponible_de_un_determinado_libro(libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas), Some(0));
+
+        // Incrementar la cantidad de copias a disposición de un libro
+        biblioteca.incrementar_cantidad_de_copias_a_disposición(libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas);
+        assert_eq!(biblioteca.ver_la_cantidad_disponible_de_un_determinado_libro(libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas), Some(1));
+        // Crear un cliente
+        let cliente = Cliente::new("Juan".to_string(), "Dirección del cliente".to_string(), "correo@cliente.com".to_string(), 1);
+        // Verificar si un libro está prestado a un cliente
+        assert_eq!(
+            biblioteca.buscar_prestamo(cliente.dni, libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas),
+            true
+        );
+
+        // Contar préstamos de un cliente
+        assert_eq!(biblioteca.contar_prestamos_de_un_cliente(cliente.dni), Some(1));
+
+        // Devolver un libro
+        biblioteca.devolver_libro(cliente.dni, libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas);
+
+        // Verificar si un libro ya no está prestado
+        assert_eq!(
+            biblioteca.buscar_prestamo(cliente.dni, libro1.titulo.clone(), libro1.autor.clone(), libro1.numero_de_paginas),
+            false
+        );
+
+        // Verificar la cantidad de préstamos a vencer en los próximos días
+        assert_eq!(biblioteca.ver_prestamos_a_vencer_el_los_próximos_días(2023, 7, 6, 30), Some(0));
+
+        // Verificar los préstamos vencidos
+        assert_eq!(biblioteca.ver_los_prestamos_vencidos(2023, 7, 6), Some(vec![]));
+    }
+}
+pub fn ejecutable(){}
